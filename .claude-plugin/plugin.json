@@ -1,0 +1,1 @@
+{"name": "cache-wetter", "version": "0.1.0", "description": "Bar above the prompt: cache time left, hit rate, context weather, compact button and API cost per model", "types": "./types/index.d.ts"}

@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#141414;font:14px -apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:#e8e8e8;padding:28px}
+.band{background:#232323;border-radius:12px;padding:12px 18px;width:760px}
+.row{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.dim{color:#8a8a8a}.sep{color:#3a3f4b}.b{font-weight:600}
+.bar{flex:1;height:8px;border-radius:4px;background:#3a3f4b;position:relative;min-width:40px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:#5b7cfa}
+.btn{background:#3a3a3a;border-radius:6px;padding:2px 8px;color:#cfcfcf;font-size:13px}
+hr{border:0;border-top:1px solid #3a3f4b;margin:10px 0}
+table{border-collapse:collapse;width:100%}td{padding:2px 0;text-align:right}td:first-child{text-align:left;width:150px}
+.sec{margin-top:12px}.src{display:grid;grid-template-columns:200px 40px 1fr 70px 50px;gap:10px;align-items:center;padding:2px 0}
+.r{text-align:right}.tip{margin-top:12px;font-size:13px;line-height:1.4}
+</style></head><body><div class="band">
+<div class="row"><span class="dim">▴</span><span style="color:#5b7cfa">Cache 52 min</span><div class="bar"><i style="width:87%"></i></div><span class="sep">│</span><span class="dim">Hit 91%</span><span class="sep">│</span>☀️<span class="dim">Context 23%</span><span class="btn">Compact</span><span class="sep">│</span><span class="b">$4.18</span></div>
+<hr>
+<table><tr class="b"><td>Models</td><td>Opus 5.5</td><td>Sonnet 5.5</td><td>Haiku 4.5</td><td>Total</td></tr>
+<tr class="dim"><td>Input</td><td>48</td><td>31</td><td>12</td><td>91</td></tr>
+<tr class="dim"><td>Output</td><td>6.2k</td><td>3.9k</td><td>1.1k</td><td>11.2k</td></tr>
+<tr class="dim"><td>Cache read</td><td>2.4M</td><td>1.6M</td><td>210.4k</td><td>4.2M</td></tr>
+<tr class="dim"><td>Cache write</td><td>402.1k</td><td>188.7k</td><td>44.0k</td><td>634.8k</td></tr>
+<tr class="dim"><td>Cache hit</td><td>86%</td><td>89%</td><td>83%</td><td>87%</td></tr>
+<tr class="b"><td>Cost</td><td>$3.32</td><td>$0.73</td><td>$0.13</td><td>$4.18</td></tr></table>
+<div class="sec b">What's costing money?</div>
+<div class="src"><span>Main chat <span class="dim">Chat</span></span><span class="dim r">14×</span><div class="bar"><i style="width:71%"></i></div><span class="b r">$2.98</span><span class="dim r">71%</span></div>
+<div class="src"><span>general-purpose <span class="dim">Subagent</span></span><span class="dim r">3×</span><div class="bar"><i style="width:25%"></i></div><span class="b r">$1.07</span><span class="dim r">25%</span></div>
+<div class="src"><span>Explore <span class="dim">Subagent</span></span><span class="dim r">2×</span><div class="bar"><i style="width:3%"></i></div><span class="b r">$0.13</span><span class="dim r">3%</span></div>
+<div class="src"><span>Read <span class="dim">Tool</span></span><span class="dim r">9×</span><div class="bar"><i style="width:2%"></i></div><span class="dim r">~$0.09</span><span class="dim r">2%</span></div>
+<div class="src"><span>github <span class="dim">MCP</span></span><span class="dim r">4×</span><div class="bar"><i style="width:1%"></i></div><span class="dim r">~$0.03</span><span class="dim r">1%</span></div>
+<div class="tip"><div class="b">Legend</div><div class="dim">☀️ context under half the auto-compact limit · 🌧 over half · ⛈ close to the limit, compact now. Cache bar turns orange, then red, shortly before the cache expires. ~ means estimated, already part of Main chat.</div></div>
+</div></body></html>
