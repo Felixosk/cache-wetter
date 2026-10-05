@@ -78,10 +78,47 @@ function weatherOf(ctxPct: number, thresholdPct: number): string {
   return '⛈'
 }
 
+type Saved = {
+  usage: Record<string, ModelTotals>
+  sources: Record<string, SourceTotals>
+  tools: Record<string, ToolTotals>
+  lastModel: string
+}
+
+// Summen pro Session im Store halten, damit sie nach Neustart/Resume nicht bei 0 anfangen
+async function saveTotals($: any): Promise<void> {
+  try {
+    const id = await $.session.id()
+    const data: Saved = {
+      usage: await read($, usage),
+      sources: await read($, sources),
+      tools: await read($, tools),
+      lastModel: await read($, lastModel),
+    }
+    await $.store.set(`totals:${id}`, data)
+    const old = (await $.store.keys()).filter((k: string) => k.startsWith('totals:') && k !== `totals:${id}`)
+    if (old.length > 40) for (const k of old.slice(0, old.length - 40)) await $.store.delete(k)
+  } catch {
+    // Speichern ist nur Komfort
+  }
+}
+
 export const register: Register = on => {
   let gapMs: number | null = null
 
-  on('session.start', ($, e, next) => {
+  on('session.start', async ($, e, next) => {
+    try {
+      const id = await $.session.id()
+      const saved = (await $.store.get(`totals:${id}`)) as Saved | undefined
+      if (saved) {
+        await update($, usage, () => saved.usage)
+        await update($, sources, () => saved.sources)
+        await update($, tools, () => saved.tools)
+        await update($, lastModel, () => saved.lastModel)
+      }
+    } catch {
+      // ohne gespeicherte Summen bei 0 starten
+    }
     $.clock.every(60_000, () => {
       void update($, tick, n => n + 1)
     })
@@ -161,7 +198,10 @@ export const register: Register = on => {
         }
       })
     }
-    if (e.agentId !== undefined) return result
+    if (e.agentId !== undefined) {
+      await saveTotals($)
+      return result
+    }
     if (u) {
       const total = u.input_tokens + u.cache_read_input_tokens + u.cache_creation_input_tokens
       hit = total > 0 ? Math.round((u.cache_read_input_tokens / total) * 100) : null
@@ -190,6 +230,7 @@ export const register: Register = on => {
 
     const next_: Reading = { lastAt: now, hit, ctxPct, thresholdPct, isThresholdRead }
     await update($, reading, () => next_)
+    await saveTotals($)
     return result
   })
 
