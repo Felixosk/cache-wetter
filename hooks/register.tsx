@@ -393,11 +393,13 @@ export const register: Register = on => {
             // Gesamtzahl der Schritte ist vorher unbekannt: Balken füllt sich mit jedem Tool-Aufruf
             // langsamer und bleibt unter 95 %, bis der Agent wirklich fertig ist
             const secs = ((w.endedAt ?? now) - w.startedAt) / 1000
-            const fill = isDone ? 100 : Math.max(3, Math.min(95, Math.round(100 * (1 - Math.exp(-(w.tools / 18 + secs / 120))))))
+            // in 5-%-Schritten, damit der Balken nicht um 1-2 Pixel zittert
+            const raw = 100 * (1 - Math.exp(-(w.tools / 18 + secs / 240)))
+            const fill = isDone ? 100 : Math.max(5, Math.min(95, Math.floor(raw / 5) * 5))
             return (
               <Box key={w.id} flexDirection="column">
                 <Box flexDirection="row" gap={1} alignItems="center" width="100%" overflow="hidden">
-                  <Box {...keep}>
+                  <Box width={2} flexShrink={0}>
                     <Text color={color}>{icon}</Text>
                   </Box>
                   <Box width={26} flexShrink={0} overflow="hidden">
