@@ -1,8 +1,8 @@
-# cache-wetter: Cache-Timer und API-Kosten für Claude Code
+# cockpit-bar: Cache-Timer, API-Kosten und Workers-Board für Claude Code
 
 [English](README.md)
 
-![cache-wetter Leiste über dem Eingabefeld von Claude Code](docs/hero.png)
+![cockpit-bar Leiste über dem Eingabefeld von Claude Code](docs/hero.png)
 
 Ein kleines Claude-Code-Plugin mit einer Leiste über dem Eingabefeld. Sie zeigt, wie lange der Prompt-Cache noch warm ist, wie voll der Kontext ist und was der Chat zu API-Listenpreisen kosten würde, aufgeteilt nach Modell, Unteragent, Skill, MCP-Server und Tool.
 
@@ -28,13 +28,13 @@ Claude weiß vorher nicht, wie viele Schritte ein Agent braucht. Der Balken ist 
 
 ## Installation
 
-1. Repo herunterladen oder klonen, zum Beispiel nach `~/.claude/mods/cache-wetter`.
+1. Repo herunterladen oder klonen, zum Beispiel nach `~/.claude/mods/cockpit-bar`.
 2. Den Ordner im `env`-Block von `~/.claude/settings.json` eintragen:
 
 ```json
 {
   "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/cache-wetter"
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/cockpit-bar"
   }
 }
 ```

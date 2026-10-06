@@ -1,1 +1,1 @@
-{"name": "cache-wetter", "version": "0.1.0", "description": "Bar above the prompt: cache time left, hit rate, context weather, compact button and API cost per model", "types": "./types/index.d.ts"}
+{"name": "cockpit-bar", "version": "0.1.0", "description": "Cockpit bar above the prompt: cache time left, hit rate, context weather, compact button, API cost per model and a live workers board for subagents", "types": "./types/index.d.ts"}

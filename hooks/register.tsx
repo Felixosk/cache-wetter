@@ -3,20 +3,20 @@ import type { Register } from 'claude-code'
 
 import type { ModelTotals, Reading, SourceTotals, ToolTotals, Worker } from '../types'
 
-const reading = atom({ plugin: 'cache-wetter', key: 'reading' } as const, null)
+const reading = atom({ plugin: 'cockpit-bar', key: 'reading' } as const, null)
 // Diese Session läuft mit 1 Stunde Cache. Wird unten aus echten Antworten nachgelernt.
-const ttlMinutes = atom({ plugin: 'cache-wetter', key: 'ttlMinutes' } as const, 60)
-const isCollapsed = atom({ plugin: 'cache-wetter', key: 'isCollapsed' } as const, false)
-const tick = atom({ plugin: 'cache-wetter', key: 'tick' } as const, 0)
+const ttlMinutes = atom({ plugin: 'cockpit-bar', key: 'ttlMinutes' } as const, 60)
+const isCollapsed = atom({ plugin: 'cockpit-bar', key: 'isCollapsed' } as const, false)
+const tick = atom({ plugin: 'cockpit-bar', key: 'tick' } as const, 0)
 
-const usage = atom({ plugin: 'cache-wetter', key: 'usage' } as const, {} as Record<string, ModelTotals>)
-const isCostOpen = atom({ plugin: 'cache-wetter', key: 'isCostOpen' } as const, false)
-const sources = atom({ plugin: 'cache-wetter', key: 'sources' } as const, {} as Record<string, SourceTotals>)
-const tools = atom({ plugin: 'cache-wetter', key: 'tools' } as const, {} as Record<string, ToolTotals>)
-const agentTypes = atom({ plugin: 'cache-wetter', key: 'agentTypes' } as const, {} as Record<string, string>)
-const workers = atom({ plugin: 'cache-wetter', key: 'workers' } as const, {} as Record<string, Worker>)
-const beat = atom({ plugin: 'cache-wetter', key: 'beat' } as const, 0)
-const lastModel = atom({ plugin: 'cache-wetter', key: 'lastModel' } as const, 'claude-opus-5-5')
+const usage = atom({ plugin: 'cockpit-bar', key: 'usage' } as const, {} as Record<string, ModelTotals>)
+const isCostOpen = atom({ plugin: 'cockpit-bar', key: 'isCostOpen' } as const, false)
+const sources = atom({ plugin: 'cockpit-bar', key: 'sources' } as const, {} as Record<string, SourceTotals>)
+const tools = atom({ plugin: 'cockpit-bar', key: 'tools' } as const, {} as Record<string, ToolTotals>)
+const agentTypes = atom({ plugin: 'cockpit-bar', key: 'agentTypes' } as const, {} as Record<string, string>)
+const workers = atom({ plugin: 'cockpit-bar', key: 'workers' } as const, {} as Record<string, Worker>)
+const beat = atom({ plugin: 'cockpit-bar', key: 'beat' } as const, 0)
+const lastModel = atom({ plugin: 'cockpit-bar', key: 'lastModel' } as const, 'claude-opus-5-5')
 
 function toolKey(name: string, input: Record<string, unknown>): { key: string; kind: string } {
   if (name === 'Skill' && typeof input.skill === 'string') return { key: `/${input.skill}`, kind: 'Skill' }

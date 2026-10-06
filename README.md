@@ -1,8 +1,8 @@
-# cache-wetter: prompt cache timer and API cost view for Claude Code
+# cockpit-bar: cache timer, API costs and a live workers board for Claude Code
 
 [Deutsch](README.de.md)
 
-![cache-wetter bar above the Claude Code prompt](docs/hero.png)
+![cockpit-bar bar above the Claude Code prompt](docs/hero.png)
 
 A small Claude Code plugin that puts one bar above the prompt. It shows how long the prompt cache stays warm, how full the context is, and what the current chat would cost at API list prices, split by model, subagent, skill, MCP server and tool.
 
@@ -28,13 +28,13 @@ Claude does not know in advance how many steps an agent needs, so the bar is an 
 
 ## Install
 
-1. Download or clone this repo, for example to `~/.claude/mods/cache-wetter`.
+1. Download or clone this repo, for example to `~/.claude/mods/cockpit-bar`.
 2. Add the folder to the `env` block of `~/.claude/settings.json`:
 
 ```json
 {
   "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/cache-wetter"
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/cockpit-bar"
   }
 }
 ```

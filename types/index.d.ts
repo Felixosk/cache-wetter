@@ -51,7 +51,7 @@ export type Worker = {
 
 declare module 'claude-code' {
   interface PluginState {
-    'cache-wetter': {
+    'cockpit-bar': {
       reading: Reading | null
       ttlMinutes: number
       isCollapsed: boolean
