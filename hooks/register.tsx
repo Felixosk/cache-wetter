@@ -35,6 +35,20 @@ const PRICES: { match: string; name: string; input: number; output: number; read
   { match: 'haiku', name: 'Haiku', input: 1, output: 5, read: 0.1 },
 ]
 
+// Kurzfassung dessen, was ein Tool-Aufruf gerade tut, für die Workers-Zeile
+function activityOf(tool: string, input: Record<string, unknown>): string {
+  const str = (k: string) => (typeof input[k] === 'string' ? (input[k] as string) : '')
+  const base = (path: string) => path.split('/').filter(Boolean).pop() ?? path
+  const clip = (t: string, n = 48) => (t.length > n ? `${t.slice(0, n - 1)}…` : t)
+  const one = (t: string) => t.replace(/\s+/g, ' ').trim()
+  if (tool === 'Read' || tool === 'Edit' || tool === 'Write') return `${tool} ${base(str('file_path'))}`
+  if (tool === 'Bash') return `Bash ${clip(one(str('command')))}`
+  if (tool === 'Grep' || tool === 'Glob') return `${tool} ${clip(one(str('pattern')))}`
+  if (tool === 'WebFetch' || tool === 'WebSearch') return `${tool} ${clip(one(str('url') || str('query')))}`
+  if (tool.startsWith('mcp__')) return `${toolKey(tool, input).key}: ${tool.split('__').slice(2).join('__')}`
+  return tool
+}
+
 function priceOf(model: string) {
   return PRICES.find(p => model.includes(p.match)) ?? null
 }
@@ -155,6 +169,7 @@ export const register: Register = on => {
           isFailed: false,
           tools: 0,
           lastTool: '',
+          activity: '',
         },
       }))
     }
@@ -162,15 +177,17 @@ export const register: Register = on => {
   })
 
   on('tool.call', async ($, e, next) => {
-    const res = await next(e)
+    // Agent-Aktivität vor dem Aufruf eintragen, damit man sieht, was gerade läuft
     if (e.agentId !== undefined) {
       const aid = e.agentId
       const toolName = toolKey(e.tool, e as unknown as Record<string, unknown>).key
+      const doing = activityOf(e.tool, e as unknown as Record<string, unknown>)
       await update($, workers, all => {
         const w = all[aid]
-        return w ? { ...all, [aid]: { ...w, tools: w.tools + 1, lastTool: toolName } } : all
+        return w ? { ...all, [aid]: { ...w, tools: w.tools + 1, lastTool: toolName, activity: doing } } : all
       })
     }
+    const res = await next(e)
     if (res.deny !== undefined || e.tool === 'Agent' || e.tool === 'Task') return res
     let chars = 0
     try {
@@ -375,19 +392,27 @@ export const register: Register = on => {
             const color = isDone ? '#22c55e' : BLUE
             // Gesamtzahl der Schritte ist vorher unbekannt: Balken füllt sich mit jedem Tool-Aufruf
             // langsamer und bleibt unter 95 %, bis der Agent wirklich fertig ist
-            const fill = isDone ? 100 : Math.max(3, Math.min(95, Math.round(100 * (1 - Math.exp(-w.tools / 15)))))
+            const secs = ((w.endedAt ?? now) - w.startedAt) / 1000
+            const fill = isDone ? 100 : Math.max(3, Math.min(95, Math.round(100 * (1 - Math.exp(-(w.tools / 18 + secs / 120))))))
             return (
-              <Box key={w.id} flexDirection="row" gap={1} alignItems="center" width="100%" overflow="hidden">
-                <Box {...keep}>
-                  <Text color={color}>{icon}</Text>
+              <Box key={w.id} flexDirection="column">
+                <Box flexDirection="row" gap={1} alignItems="center" width="100%" overflow="hidden">
+                  <Box {...keep}>
+                    <Text color={color}>{icon}</Text>
+                  </Box>
+                  <Box width={26} flexShrink={0} overflow="hidden">
+                    <Text wrap="truncate-end">{w.label}</Text>
+                  </Box>
+                  {meter(fill, color, `bar-${w.id}`)}
+                  <Box width={7} flexShrink={0} justifyContent="flex-end">
+                    <Text dimColor>{mmss((w.endedAt ?? now) - w.startedAt)}</Text>
+                  </Box>
                 </Box>
-                <Box width={26} flexShrink={1} overflow="hidden">
-                  <Text wrap="truncate-end">{w.label}</Text>
-                </Box>
-                {meter(fill, color, `bar-${w.id}`)}
-                <Box {...keep} justifyContent="flex-end">
-                  <Text dimColor>{mmss((w.endedAt ?? now) - w.startedAt)}</Text>
-                </Box>
+                {!isDone && w.activity ? (
+                  <Box paddingLeft={3} overflow="hidden" width="100%">
+                    <Text dimColor wrap="truncate-end">↳ {w.activity}</Text>
+                  </Box>
+                ) : null}
               </Box>
             )
           })}

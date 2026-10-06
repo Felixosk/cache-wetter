@@ -24,6 +24,8 @@ Weather icon: ☀️ context below half of the auto-compact limit, 🌧 above ha
 
 While subagents run, one row per agent appears under the bar: type, task, a progress bar, tool calls and runtime. The spinner turns into a green check when the agent is done, and the row disappears after 30 seconds. At most 5 rows.
 
+Under each running agent a second grey line shows what it is doing right now, for example `Read notes.md` or `Bash ls -la`.
+
 Claude does not know in advance how many steps an agent needs, so the bar is an estimate from the number of tool calls. It fills more slowly with every call and stays below 95% until the agent has really finished.
 
 ## Install

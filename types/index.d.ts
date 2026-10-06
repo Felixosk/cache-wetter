@@ -47,6 +47,8 @@ export type Worker = {
   tools: number
   /** zuletzt benutztes Tool */
   lastTool: string
+  /** was der Agent gerade tut, z. B. "Read register.tsx" */
+  activity: string
 }
 
 declare module 'claude-code' {

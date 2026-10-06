@@ -24,6 +24,8 @@ Wetter: ☀️ Kontext unter der Hälfte der Auto-Compact-Grenze, 🌧 über der
 
 Solange Subagents laufen, steht pro Agent eine Zeile unter der Leiste: Typ, Aufgabe, Fortschrittsbalken, Tool-Aufrufe und Laufzeit. Der Kreis wird zum grünen Haken, wenn der Agent fertig ist, nach 30 Sekunden verschwindet die Zeile. Höchstens 5 Zeilen.
 
+Unter jedem laufenden Agent zeigt eine zweite graue Zeile, was er gerade tut, zum Beispiel `Read notizen.md` oder `Bash ls -la`.
+
 Claude weiß vorher nicht, wie viele Schritte ein Agent braucht. Der Balken ist deshalb eine Schätzung aus der Zahl der Tool-Aufrufe: Er füllt sich mit jedem Aufruf langsamer und bleibt unter 95 %, bis der Agent wirklich fertig ist.
 
 ## Installation
