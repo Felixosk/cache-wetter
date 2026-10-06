@@ -33,6 +33,22 @@ export type ToolTotals = {
   usd: number
 }
 
+export type Worker = {
+  id: string
+  /** Agent-Typ, z. B. Explore */
+  type: string
+  /** Kurzbeschreibung der Aufgabe */
+  label: string
+  startedAt: number
+  /** gesetzt, sobald der Agent fertig ist */
+  endedAt: number | null
+  isFailed: boolean
+  /** Anzahl Tool-Aufrufe bisher */
+  tools: number
+  /** zuletzt benutztes Tool */
+  lastTool: string
+}
+
 declare module 'claude-code' {
   interface PluginState {
     'cache-wetter': {
@@ -46,6 +62,8 @@ declare module 'claude-code' {
       tools: Record<string, ToolTotals>
       agentTypes: Record<string, string>
       lastModel: string
+      workers: Record<string, Worker>
+      beat: number
     }
   }
 }

@@ -20,6 +20,12 @@ The arrow on the left cycles through three sizes.
 
 Weather icon: ☀️ context below half of the auto-compact limit, 🌧 above half, ⛈ close to the limit (the compact button lights up). The cache bar turns orange below 25% of the cache time and red below 10%.
 
+## Workers board
+
+While subagents run, one row per agent appears under the bar: type, task, a progress bar, tool calls and runtime. The spinner turns into a green check when the agent is done, and the row disappears after 30 seconds. At most 5 rows.
+
+Claude does not know in advance how many steps an agent needs, so the bar is an estimate from the number of tool calls. It fills more slowly with every call and stays below 95% until the agent has really finished.
+
 ## Install
 
 1. Download or clone this repo, for example to `~/.claude/mods/cache-wetter`.

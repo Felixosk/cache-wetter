@@ -20,6 +20,12 @@ Der Pfeil links schaltet durch drei Größen.
 
 Wetter: ☀️ Kontext unter der Hälfte der Auto-Compact-Grenze, 🌧 über der Hälfte, ⛈ kurz vor der Grenze (der Compact-Knopf leuchtet). Der Cache-Balken wird unter 25% der Laufzeit orange und unter 10% rot.
 
+## Workers-Board
+
+Solange Subagents laufen, steht pro Agent eine Zeile unter der Leiste: Typ, Aufgabe, Fortschrittsbalken, Tool-Aufrufe und Laufzeit. Der Kreis wird zum grünen Haken, wenn der Agent fertig ist, nach 30 Sekunden verschwindet die Zeile. Höchstens 5 Zeilen.
+
+Claude weiß vorher nicht, wie viele Schritte ein Agent braucht. Der Balken ist deshalb eine Schätzung aus der Zahl der Tool-Aufrufe: Er füllt sich mit jedem Aufruf langsamer und bleibt unter 95 %, bis der Agent wirklich fertig ist.
+
 ## Installation
 
 1. Repo herunterladen oder klonen, zum Beispiel nach `~/.claude/mods/cache-wetter`.

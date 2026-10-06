@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
-import type { ModelTotals, Reading, SourceTotals, ToolTotals } from '../types'
+import type { ModelTotals, Reading, SourceTotals, ToolTotals, Worker } from '../types'
 
 const reading = atom({ plugin: 'cache-wetter', key: 'reading' } as const, null)
 // Diese Session läuft mit 1 Stunde Cache. Wird unten aus echten Antworten nachgelernt.
@@ -14,6 +14,8 @@ const isCostOpen = atom({ plugin: 'cache-wetter', key: 'isCostOpen' } as const, 
 const sources = atom({ plugin: 'cache-wetter', key: 'sources' } as const, {} as Record<string, SourceTotals>)
 const tools = atom({ plugin: 'cache-wetter', key: 'tools' } as const, {} as Record<string, ToolTotals>)
 const agentTypes = atom({ plugin: 'cache-wetter', key: 'agentTypes' } as const, {} as Record<string, string>)
+const workers = atom({ plugin: 'cache-wetter', key: 'workers' } as const, {} as Record<string, Worker>)
+const beat = atom({ plugin: 'cache-wetter', key: 'beat' } as const, 0)
 const lastModel = atom({ plugin: 'cache-wetter', key: 'lastModel' } as const, 'claude-opus-5-5')
 
 function toolKey(name: string, input: Record<string, unknown>): { key: string; kind: string } {
@@ -122,6 +124,11 @@ export const register: Register = on => {
     $.clock.every(60_000, () => {
       void update($, tick, n => n + 1)
     })
+    // Workers Board: nur alle 2 Sek. neu zeichnen, solange ein Agent läuft (Laufzeit + Spinner)
+    $.clock.every(2_000, async () => {
+      const all = await read($, workers)
+      if (Object.values(all).some(w => w.endedAt === null)) await update($, beat, n => n + 1)
+    })
     return next(e)
   })
 
@@ -136,12 +143,34 @@ export const register: Register = on => {
     if (res.agentId) {
       const id = res.agentId
       await update($, agentTypes, all => ({ ...all, [id]: e.subagentType }))
+      const startedAt = await $.clock.now()
+      await update($, workers, all => ({
+        ...all,
+        [id]: {
+          id,
+          type: e.subagentType,
+          label: (e.description || e.prompt || '').replace(/\s+/g, ' ').slice(0, 60),
+          startedAt,
+          endedAt: null,
+          isFailed: false,
+          tools: 0,
+          lastTool: '',
+        },
+      }))
     }
     return res
   })
 
   on('tool.call', async ($, e, next) => {
     const res = await next(e)
+    if (e.agentId !== undefined) {
+      const aid = e.agentId
+      const toolName = toolKey(e.tool, e as unknown as Record<string, unknown>).key
+      await update($, workers, all => {
+        const w = all[aid]
+        return w ? { ...all, [aid]: { ...w, tools: w.tools + 1, lastTool: toolName } } : all
+      })
+    }
     if (res.deny !== undefined || e.tool === 'Agent' || e.tool === 'Task') return res
     let chars = 0
     try {
@@ -199,6 +228,12 @@ export const register: Register = on => {
       })
     }
     if (e.agentId !== undefined) {
+      const aid = e.agentId
+      const endedAt = await $.clock.now()
+      await update($, workers, all => {
+        const w = all[aid]
+        return w && w.endedAt === null ? { ...all, [aid]: { ...w, endedAt } } : all
+      })
       await saveTotals($)
       return result
     }
@@ -245,6 +280,8 @@ export const register: Register = on => {
     }
 
     await read($, tick)
+    const beatNow = await read($, beat)
+    const workerAll = await read($, workers)
     const ttl = await read($, ttlMinutes)
     const collapsed = await read($, isCollapsed)
     const now = await $.clock.now()
@@ -317,14 +354,57 @@ export const register: Register = on => {
       />
     )
 
+    const keep = { flexShrink: 0 } as const
+
+    // Workers Board: laufende Agents immer, fertige noch 30 Sek., max. 5 Zeilen
+    const mmss = (ms: number) => {
+      const sec = Math.max(0, Math.floor(ms / 1000))
+      return sec >= 60 ? `${Math.floor(sec / 60)}m ${String(sec % 60).padStart(2, '0')}s` : `${sec}s`
+    }
+    const SPIN = ['◐', '◓', '◑', '◒']
+    const visible = Object.values(workerAll)
+      .filter(w => w.endedAt === null || now - w.endedAt < 30_000)
+      .sort((a, b) => a.startedAt - b.startedAt)
+    const runningCount = visible.filter(w => w.endedAt === null).length
+    const workersView =
+      visible.length === 0 ? null : (
+        <Box flexDirection="column" paddingLeft={2}>
+          {visible.slice(-5).map(w => {
+            const isDone = w.endedAt !== null
+            const icon = isDone ? '✓' : SPIN[beatNow % SPIN.length]
+            const color = isDone ? '#22c55e' : BLUE
+            // Gesamtzahl der Schritte ist vorher unbekannt: Balken füllt sich mit jedem Tool-Aufruf
+            // langsamer und bleibt unter 95 %, bis der Agent wirklich fertig ist
+            const fill = isDone ? 100 : Math.max(3, Math.min(95, Math.round(100 * (1 - Math.exp(-w.tools / 15)))))
+            return (
+              <Box key={w.id} flexDirection="row" gap={1} alignItems="center" width="100%" overflow="hidden">
+                <Box {...keep}>
+                  <Text color={color}>{icon}</Text>
+                </Box>
+                <Box width={26} flexShrink={1} overflow="hidden">
+                  <Text wrap="truncate-end">{w.label}</Text>
+                </Box>
+                {meter(fill, color, `bar-${w.id}`)}
+                <Box {...keep} justifyContent="flex-end">
+                  <Text dimColor>{mmss((w.endedAt ?? now) - w.startedAt)}</Text>
+                </Box>
+              </Box>
+            )
+          })}
+        </Box>
+      )
+
     if (collapsed) {
       return (
-        <Box flexDirection="row" gap={1}>
-          {toggle}
-          <Text>{weather}</Text>
-          <Text color={cacheColor}>Cache {cacheText}</Text>
-          <Text dimColor>Context {ctx}%</Text>
-          <Text bold>{usd(sumUsd)}</Text>
+        <Box flexDirection="column">
+          <Box flexDirection="row" gap={1}>
+            {toggle}
+            <Text>{weather}</Text>
+            <Text color={cacheColor}>Cache {cacheText}</Text>
+            <Text dimColor>Context {ctx}%</Text>
+            <Text bold>{usd(sumUsd)}</Text>
+          </Box>
+          {workersView}
         </Box>
       )
     }
@@ -336,8 +416,9 @@ export const register: Register = on => {
       }
       try {
         await $.session.compact()
-      } catch {
-        $.ui.toast('Compact did not work right now')
+      } catch (err) {
+        const why = err instanceof Error ? err.message : String(err)
+        $.ui.toast(`Compact did not work: ${why}`.slice(0, 200))
       }
     }
 
@@ -468,8 +549,6 @@ export const register: Register = on => {
       </Box>
     ) : null
 
-    const keep = { flexShrink: 0 } as const
-
     return (
       <Box flexDirection="column">
         <Box flexDirection="row" gap={1} alignItems="center">
@@ -479,13 +558,9 @@ export const register: Register = on => {
           </Box>
           {meter(leftMs > 0 ? Math.max(2, Math.round(frac * 100)) : 0, cacheColor, 'cache-meter')}
           <Text color={TRACK}>│</Text>
-          <Box {...keep}>
-            <Text dimColor>Hit {r.hit === null ? '–' : `${r.hit}%`}</Text>
-          </Box>
-          <Text color={TRACK}>│</Text>
           <Text>{weather}</Text>
           <Box {...keep}>
-            <Text dimColor>Context {ctx}%</Text>
+            <Text dimColor>{ctx}%</Text>
           </Box>
           <Button
             key="compact"
@@ -499,6 +574,7 @@ export const register: Register = on => {
             <Text bold>{usd(sumUsd)}</Text>
           </Box>
         </Box>
+        {workersView}
         {costRows}
       </Box>
     )
